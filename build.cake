@@ -54,7 +54,9 @@ Task("Restore-Nuget-Packages")
 {
     Information("Restoring packages in {0}", BuildParameters.Solution);
 
-    NuGetRestore(BuildParameters.Solution);
+    MSBuild(BuildParameters.Solution, settings =>
+        settings.WithTarget("Restore")
+                .SetConfiguration(configuration));
 });
 
 
@@ -104,7 +106,7 @@ Task("Run-Unit-Tests")
     .WithCriteria(() => !parameters.SkipTests)
     .Does(() =>
 	{
-		var testsFile ="./src/**/bin/" + configuration + "/Tests.dll";
+		var testsFile ="./src/**/bin/" + configuration + "/**/Tests.dll";
 		Information(testsFile);
 
 		NUnit3(testsFile, new NUnit3Settings {
@@ -132,9 +134,9 @@ Task("Copy-Files")
 	{
 		EnsureDirectoryExists(parameters.ResultBinDir);
 
-		CopyFileToDirectory(parameters.BuildDir + "/Cake.SqlServer.dll", parameters.ResultBinDir);
-		CopyFileToDirectory(parameters.BuildDir + "/Cake.SqlServer.pdb", parameters.ResultBinDir);
-		CopyFileToDirectory(parameters.BuildDir + "/Cake.SqlServer.xml", parameters.ResultBinDir);
+		CopyFileToDirectory(parameters.BuildDir + "/net46/Cake.SqlServer.dll", parameters.ResultBinDir);
+		CopyFileToDirectory(parameters.BuildDir + "/net46/Cake.SqlServer.pdb", parameters.ResultBinDir);
+		CopyFileToDirectory(parameters.BuildDir + "/net46/Cake.SqlServer.xml", parameters.ResultBinDir);
 
 		CopyFiles(parameters.BuildDir + "/Microsoft.*.dll", parameters.ResultBinDir);
 
