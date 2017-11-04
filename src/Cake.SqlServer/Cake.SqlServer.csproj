@@ -3,12 +3,37 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <DocumentationFile>bin\Debug\Cake.SqlServer.xml</DocumentationFile>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <Authors>Max Vasilyev</Authors>
+    <Company>AMV Software</Company>
+    <Copyright>Copyright © 2017 AMV Software</Copyright>
+    <Description>Cake addin integrating with Microsoft SQL Server</Description>
+    <PackageTags>Cake build script SQL Server</PackageTags>
+    <LicenseUrl>https://github.com/AMVSoftware/Cake.SqlServer/blob/master/LICENSE</LicenseUrl>
+    <ProjectUrl>https://github.com/AMVSoftware/Cake.SqlServer</ProjectUrl>
+    <IconUrl>https://raw.githubusercontent.com/cake-contrib/graphics/a5cf0f881c390650144b2243ae551d5b9f836196/png/cake-contrib-medium.png</IconUrl>
+
+    <!-- https://github.com/NuGet/Home/issues/4142 -->
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Cake.Core" Version="0.22.2" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SqlServer.DacFx.x64" Version="130.3485.1" PrivateAssets="all" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\LICENSE" PackagePath="\" />
+  </ItemGroup>
+
+  <!-- https://github.com/NuGet/Home/issues/3891#issuecomment-341868757 -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludePackageReferenceAssets</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludePackageReferenceAssets">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)Microsoft.*.dll" />
+    </ItemGroup>
+  </Target>
 
 </Project>

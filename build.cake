@@ -9,6 +9,13 @@ bool publishingError = false;
 
 BuildParameters parameters = BuildParameters.GetParameters(Context);
 
+MSBuildSettings CreateBuildSettings()
+{
+    return new MSBuildSettings()
+        .SetConfiguration(configuration)
+        .WithProperty("Version", parameters.Version);
+}
+
 Setup(context =>
 {
     parameters.Initialize(context);
@@ -54,9 +61,7 @@ Task("Restore-Nuget-Packages")
 {
     Information("Restoring packages in {0}", BuildParameters.Solution);
 
-    MSBuild(BuildParameters.Solution, settings =>
-        settings.WithTarget("Restore")
-                .SetConfiguration(configuration));
+    MSBuild(BuildParameters.Solution, CreateBuildSettings().WithTarget("Restore"));
 });
 
 
@@ -69,10 +74,7 @@ Task("Build")
 {
     Information("Building {0}", BuildParameters.Solution);
 
-    MSBuild(BuildParameters.Solution, settings =>
-        settings.SetPlatformTarget(PlatformTarget.MSIL)
-                .WithTarget("Build")
-                .SetConfiguration(configuration));
+    MSBuild(BuildParameters.Solution, CreateBuildSettings().WithTarget("Build"));
 });
 
 Task("Start-LocalDB")
@@ -128,38 +130,17 @@ Task("Run-Unit-Tests")
 
 
 
-Task("Copy-Files")
+Task("Create-NuGet-Packages")
     .IsDependentOn("Run-Unit-Tests")
     .Does(() =>
 	{
-		EnsureDirectoryExists(parameters.ResultBinDir);
+        // https://github.com/cake-build/cake/issues/1910
+        var releaseNotes = string.Join("%0D%0A", ParseReleaseNotes("./ReleaseNotes.md").Notes);
 
-		CopyFileToDirectory(parameters.BuildDir + "/net46/Cake.SqlServer.dll", parameters.ResultBinDir);
-		CopyFileToDirectory(parameters.BuildDir + "/net46/Cake.SqlServer.pdb", parameters.ResultBinDir);
-		CopyFileToDirectory(parameters.BuildDir + "/net46/Cake.SqlServer.xml", parameters.ResultBinDir);
-
-		CopyFiles(parameters.BuildDir + "/Microsoft.*.dll", parameters.ResultBinDir);
-
-		CopyFiles(new FilePath[] { "LICENSE", "README.md", "ReleaseNotes.md" }, parameters.ResultBinDir);
-	});
-
-
-
-Task("Create-NuGet-Packages")
-    .IsDependentOn("Copy-Files")
-    .Does(() =>
-	{
-		var releaseNotes = ParseReleaseNotes("./ReleaseNotes.md");
-
-		NuGetPack("./src/Cake.SqlServer/Cake.SqlServer.nuspec", new NuGetPackSettings
-		{
-			Version = parameters.Version,
-			ReleaseNotes = releaseNotes.Notes.ToArray(),
-			BasePath = parameters.ResultBinDir,
-			OutputDirectory = parameters.BuildResultDir,
-			Symbols = false,
-			NoPackageAnalysis = true
-		});
+        MSBuild(BuildParameters.ProjectDir, CreateBuildSettings()
+            .WithTarget("Pack")
+            .WithProperty("PackageReleaseNotes", releaseNotes)
+            .WithProperty("PackageOutputPath", System.IO.Path.GetFullPath(parameters.BuildResultDir)));
 	});
 
 

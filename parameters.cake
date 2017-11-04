@@ -23,8 +23,7 @@ public class BuildParameters
     {
         context.Information("Executing GitVersion");
         var result = context.GitVersion(new GitVersionSettings{
-            UpdateAssemblyInfoFilePath = ProjectDir + "properties/AssemblyInfo.cs",
-            UpdateAssemblyInfo = true,
+            UpdateAssemblyInfo = false
         });
         Version = result.MajorMinorPatch ?? "0.0.1";
         SemVersion = result.LegacySemVerPadded ?? "0.0.1";
@@ -80,14 +79,6 @@ public class BuildParameters
         get 
         {
             return "./build-results/v" + SemVersion + "/";
-        }
-    }
-
-    public string ResultBinDir
-    {
-        get 
-        {
-            return BuildResultDir + "bin";
         }
     }
 
