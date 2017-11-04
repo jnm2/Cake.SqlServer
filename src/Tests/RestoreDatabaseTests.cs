@@ -2,11 +2,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Cake.Core;
 using Cake.Core.IO;
 using Cake.SqlServer;
 using FluentAssertions;
 using NSubstitute;
+using Path = System.IO.Path;
 
 
 namespace Tests
@@ -206,7 +208,7 @@ namespace Tests
                 var settings = new RestoreSqlBackupSettings()
                 {
                     NewDatabaseName = newDatabaseName,
-                    NewStorageFolder = new DirectoryPath(System.IO.Path.GetTempPath()),
+                    NewStorageFolder = new DirectoryPath(Path.GetTempPath()),
                     WithReplace = true,
                     SwitchToSingleUserMode = false,
                 };
@@ -227,7 +229,8 @@ namespace Tests
 
         private static string GetBackupFilePath(String filename = "multiFileBackup.bak")
         {
-            return Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, filename, SearchOption.AllDirectories).FirstOrDefault();
+            var assemblyDirectory = Path.GetDirectoryName(typeof(RestoreDatabaseTests).GetTypeInfo().Assembly.Location);
+            return Directory.GetFiles(assemblyDirectory, filename, SearchOption.AllDirectories).FirstOrDefault();
         }
     }
 }

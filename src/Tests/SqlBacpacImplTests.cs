@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NETCOREAPP1_0
+using System;
 using System.IO;
 using System.Linq;
 using Cake.Core;
@@ -76,3 +77,4 @@ namespace Tests
         }
     }
 }
+#endif

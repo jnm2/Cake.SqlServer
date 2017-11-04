@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Cake.Core;
 using Cake.SqlServer;
 using FluentAssertions;
@@ -94,15 +95,25 @@ namespace Tests
         }
 
 
+        private static void FailOnStateChange(object sender, EventArgs e)
+        {
+            Assert.Fail("Connection state should not change.");
+        }
 
         [Test]
         public void ExecuteSqlCommand_does_not_change_connection_state()
         {
             using (var connection = SqlServerAliases.OpenSqlConnection(context, ConnectionString))
             {
-                connection.MonitorEvents();
-                SqlServerAliases.ExecuteSqlCommand(context, connection, "select * from sys.tables");
-                connection.ShouldNotRaise(nameof(connection.StateChange));
+                connection.StateChange += FailOnStateChange;
+                try
+                {
+                    SqlServerAliases.ExecuteSqlCommand(context, connection, "select * from sys.tables");
+                }
+                finally
+                {
+                    connection.StateChange -= FailOnStateChange;
+                }
             }
         }
 
@@ -115,9 +126,15 @@ namespace Tests
             {
                 using (var connection = SqlServerAliases.OpenSqlConnection(context, ConnectionString))
                 {
-                    connection.MonitorEvents();
-                    SqlServerAliases.ExecuteSqlFile(context, connection, GetSqlFilePath());
-                    connection.ShouldNotRaise(nameof(connection.StateChange));
+                    connection.StateChange += FailOnStateChange;
+                    try
+                    {
+                        SqlServerAliases.ExecuteSqlFile(context, connection, GetSqlFilePath());
+                    }
+                    finally
+                    {
+                        connection.StateChange -= FailOnStateChange;
+                    }
                 }
             }
             finally
@@ -176,7 +193,8 @@ namespace Tests
 
         private static string GetSqlFilePath()
         {
-            return Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "Script.sql", SearchOption.AllDirectories).FirstOrDefault();
+            var assemblyDirectory = Path.GetDirectoryName(typeof(RestoreDatabaseTests).GetTypeInfo().Assembly.Location);
+            return Directory.GetFiles(assemblyDirectory, "Script.sql", SearchOption.AllDirectories).FirstOrDefault();
         }
 
         [Test]

@@ -107,14 +107,6 @@ public class BuildParameters
             return true;
             // return !IsLocalBuild && !IsPullRequest && !IsTagged || IsMasterBranch;
         }
-    }    
-
-    public string TestResultsFile 
-    {
-        get
-        {
-            return BuildResultDir + "/TestsResults.xml";
-        }
-    }    
+    }
 }
 

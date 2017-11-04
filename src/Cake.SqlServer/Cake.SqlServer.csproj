@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.Net.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFrameworks>net46;netstandard1.6</TargetFrameworks>
     <DocumentationFile>bin\Debug\Cake.SqlServer.xml</DocumentationFile>
 
     <Authors>Max Vasilyev</Authors>
@@ -19,7 +19,8 @@
 
   <ItemGroup>
     <PackageReference Include="Cake.Core" Version="0.22.2" />
-    <PackageReference Include="Microsoft.SqlServer.DacFx.x64" Version="130.3485.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SqlServer.DacFx.x64" Version="130.3485.1" PrivateAssets="all" Condition=" '$(TargetFramework)' != 'netstandard1.6' " />
+    <PackageReference Include="System.Data.SqlClient" Version="4.4.0" PrivateAssets="all" Condition=" '$(TargetFramework)' == 'netstandard1.6' " />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +33,16 @@
   </PropertyGroup>
   <Target Name="IncludePackageReferenceAssets">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)Microsoft.*.dll" />
+      <!-- Hacks because Cake 0.22.2 doesn’t yet respect nuspec dependencies.
+           (https://github.com/cake-build/cake/issues/787#issuecomment-341914484) -->
+
+      <BuildOutputInPackage
+        Condition=" '%(PackageName)' != 'Cake.Core' and '%(ReferenceCopyLocalPaths.DestinationSubDirectory)' == '' "
+        Include="@(ReferenceCopyLocalPaths)" />
+
+      <BuildOutputInPackage
+        Condition=" '%(PackageName)' == 'System.Data.SqlClient' or '%(PackageName)' == 'System.Data.Common' "
+        Include="@(AllCopyLocalItems)" />
     </ItemGroup>
   </Target>
 

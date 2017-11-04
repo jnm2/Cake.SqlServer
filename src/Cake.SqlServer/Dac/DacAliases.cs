@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NETSTANDARD1_6
+using System;
 using Cake.Core;
 using Cake.Core.Annotations;
 using Cake.Core.IO;
@@ -165,3 +166,4 @@ namespace Cake.SqlServer
         }
     }
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using Cake.Core;
+﻿#if !NETSTANDARD1_6
+using Cake.Core;
 using Cake.Core.Diagnostics;
 using Microsoft.SqlServer.Dac;
 
@@ -34,3 +35,4 @@ namespace Cake.SqlServer
         }
     }
 }
+#endif

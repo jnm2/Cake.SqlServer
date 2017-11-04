@@ -101,30 +101,41 @@ Task("Start-LocalDB")
         throw new Exception("LocalDB v12 is not installed. Can't complete tests");
     });
 
-
 Task("Run-Unit-Tests")
     .IsDependentOn("Build")
     .IsDependentOn("Start-LocalDB")
     .WithCriteria(() => !parameters.SkipTests)
     .Does(() =>
 	{
-		var testsFile ="./src/**/bin/" + configuration + "/**/Tests.dll";
-		Information(testsFile);
-
-		NUnit3(testsFile, new NUnit3Settings {
-            Results = new List<NUnit3Result>(){
-                new NUnit3Result(){
-                    FileName = parameters.TestResultsFile,
-                }
-            } 
-		});
-    })
-    .Finally(() =>
-    {  
-        if(FileExists(parameters.TestResultsFile) && parameters.IsRunningOnAppVeyor)
+        var tempDirectory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), System.IO.Path.GetRandomFileName());
+        CreateDirectory(tempDirectory);
+        try
         {
-            Information("File {0} Exists!", parameters.TestResultsFile);
-            AppVeyor.UploadTestResults(parameters.TestResultsFile, AppVeyorTestResultsType.NUnit3);
+            try
+            {
+                DotNetCoreTest("src/Tests/Tests.csproj", new DotNetCoreTestSettings
+                {
+                    Configuration = configuration,
+                    NoBuild = true,
+                    Logger = "trx",
+                    ArgumentCustomization = a => a.AppendSwitchQuoted("--results-directory", tempDirectory)
+                });
+            }
+            finally
+            {
+                if (parameters.IsRunningOnAppVeyor)
+                {
+                    // dotnet test cannot do more than one target framework per TRX file
+                    // AppVeyor seems to ignore all but the first TRX upload– perhaps because the test names are identical
+                    // https://github.com/Microsoft/vstest/issues/880#issuecomment-341912021
+                    foreach (var testResultsFile in GetFiles(tempDirectory + "/**/*.trx"))
+                        AppVeyor.UploadTestResults(testResultsFile, AppVeyorTestResultsType.MSTest);
+                }
+            }
+        }
+        finally
+        {
+            DeleteDirectory(tempDirectory, new DeleteDirectorySettings { Recursive = true });
         }
     });
 
