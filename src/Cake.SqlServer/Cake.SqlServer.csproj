@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Cake.Core" Version="0.22.2" PrivateAssets="all" />
+    <PackageReference Include="Cake.Core" Version="0.22.2" />
     <PackageReference Include="Microsoft.SqlServer.DacFx.x64" Version="130.3485.1" PrivateAssets="all" />
   </ItemGroup>
 

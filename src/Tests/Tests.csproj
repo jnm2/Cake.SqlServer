@@ -7,7 +7,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Cake.SqlServer\Cake.SqlServer.csproj" />
 
-    <PackageReference Include="Cake.Core" Version="0.22.2" />
     <PackageReference Include="Cake.Testing" Version="0.22.2" />
     <PackageReference Include="Dapper" Version="1.50.2" />
     <PackageReference Include="FluentAssertions" Version="4.19.4" />
